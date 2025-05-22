@@ -37,7 +37,7 @@ RUN python3 -m venv /workspace/venv && \
       scikit-learn accelerate prefetch_generator && \
     /workspace/venv/bin/pip install \
       #git+https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/bioinfoUcsd/dimorphite_dl.git
-      git+https://https://github.com/durrantlab/dimorphite_dl
+      git+https://github.com/durrantlab/dimorphite_dl
 
 
 
