@@ -51,11 +51,14 @@ RUN git clone --depth 1 https://github.com/facebookresearch/esm.git /workspace/S
 # Extract APBS / PDB2PQR bundle that SurfDock ships
 RUN tar -xzf /workspace/SurfDock/comp_surface/tools/APBS_PDB2PQR.tar.gz -C /workspace/SurfDock/comp_surface/tools
 
-# ───────── 6. Build & install MSMS (surface generator) ─────────
-RUN git clone --depth 1 https://github.com/mgltools/msms.git /tmp/msms-src \
- && make -C /tmp/msms-src \
- && install /tmp/msms-src/msms.x86_64Linux* /usr/local/bin/msms \
- && rm -rf /tmp/msms-src
+# 6) Build & install MSMS (surface generator) from public ZIP
+RUN apt-get update && apt-get install -y unzip curl && \
+    curl -L https://github.com/mgltools/msms/archive/refs/heads/master.zip -o /tmp/msms.zip && \
+    unzip /tmp/msms.zip -d /tmp && \
+    make -C /tmp/msms-master && \
+    install /tmp/msms-master/msms.x86_64Linux* /usr/local/bin/msms && \
+    rm -rf /tmp/msms.zip /tmp/msms-master
+
 
 # ───────── 7. Patch hard-coded conda-activate line ─────────
 RUN sed -i 's/^source .*activate.*//' /workspace/SurfDock/bash_scripts/test_scripts/screen_pipeline.sh \
