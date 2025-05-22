@@ -19,8 +19,8 @@ ENV PATH="/workspace/venv/bin:$PATH"
 # ───────── 4. Python venv + core wheels ─────────
 
 
-ARG GITHUB_USERNAME
-ARG GITHUB_TOKEN
+#ARG GITHUB_USERNAME
+#ARG GITHUB_TOKEN
 
 RUN python3 -m venv /workspace/venv && \
     /workspace/venv/bin/pip install --upgrade pip setuptools wheel && \
@@ -36,7 +36,8 @@ RUN python3 -m venv /workspace/venv && \
       tokenizers transformers huggingface-hub wandb e3nn \
       scikit-learn accelerate prefetch_generator && \
     /workspace/venv/bin/pip install \
-      git+https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/bioinfoUcsd/dimorphite_dl.git
+      #git+https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/bioinfoUcsd/dimorphite_dl.git
+      git+https://https://github.com/durrantlab/dimorphite_dl
 
 
 
