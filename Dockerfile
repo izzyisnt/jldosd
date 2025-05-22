@@ -19,11 +19,6 @@ ENV PATH="/workspace/venv/bin:$PATH"
 # ───────── 4. Python venv + core wheels ─────────
 
 
-build-args: |
-  GITHUB_USERNAME=${{ github.actor }}
-  GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-
-
 ARG GITHUB_USERNAME
 ARG GITHUB_TOKEN
 
