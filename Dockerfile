@@ -18,15 +18,13 @@ ENV PATH="/workspace/venv/bin:$PATH"
 
 # ───────── 4. Python venv + core wheels ─────────
 
-RUN bash -c "python3 -m venv /workspace/venv \
- && /workspace/venv/bin/pip install --upgrade pip setuptools wheel \
- && pip install torch==2.2.2 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 \
- && TORCH_VER=$(python -c 'import torch; print(torch.__version__)') \
- && pip install torch-scatter torch-sparse torch-cluster torch-spline-conv -f https://data.pyg.org/whl/torch-${TORCH_VER}.html \
- && pip install \
-      numpy scipy pandas biopython prody spyrmsd rdkit-pypi \
-      tokenizers transformers huggingface-hub wandb e3nn \
-      scikit-learn accelerate dimorphite_dl prefetch_generator"
+
+- name: Install Python dependencies
+  run: |
+    pip install --upgrade pip setuptools wheel
+    pip install torch==2.2.2 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+    pip install scikit-learn accelerate git+https://github.com/chembl/dimorphite_dl.git prefetch_generator
+
 
 # ───────── 5. Clone SurfDock and helpers ─────────
 RUN git clone https://github.com/CAODH/SurfDock.git /workspace/SurfDock
