@@ -51,13 +51,20 @@ RUN git clone --depth 1 https://github.com/facebookresearch/esm.git /workspace/S
 # Extract APBS / PDB2PQR bundle that SurfDock ships
 RUN tar -xzf /workspace/SurfDock/comp_surface/tools/APBS_PDB2PQR.tar.gz -C /workspace/SurfDock/comp_surface/tools
 
-# 6) Build & install MSMS (surface generator) from public ZIP
-RUN apt-get update && apt-get install -y unzip curl && \
-    curl -L https://github.com/mgltools/msms/archive/refs/heads/master.zip -o /tmp/msms.zip && \
-    unzip /tmp/msms.zip -d /tmp && \
-    make -C /tmp/msms-master && \
-    install /tmp/msms-master/msms.x86_64Linux* /usr/local/bin/msms && \
-    rm -rf /tmp/msms.zip /tmp/msms-master
+# ─── Build & install MSMS into /workspace/bin ───
+RUN mkdir -p /workspace/bin && \
+    apt-get update && apt-get install -y curl && \
+    curl -fsSL http://mgltools.scripps.edu/downloads/tars/releases/MSMSRELEASE/REL2.6.1/msms_i86_64Linux2_2.6.1.tar.gz \
+      -o /tmp/msms.tgz && \
+    mkdir -p /tmp/msms && \
+    tar -xzf /tmp/msms.tgz -C /tmp/msms && \
+    install /tmp/msms/msms.x86_64Linux2.2.6.1 /workspace/bin/msms && \
+    chmod +x /workspace/bin/msms && \
+    rm -rf /tmp/msms /tmp/msms.tgz
+
+# And at the top of your Dockerfile, make sure /workspace/bin is on PATH:
+ENV PATH="/workspace/bin:/workspace/venv/bin:${PATH}"
+
 
 
 # ───────── 7. Patch hard-coded conda-activate line ─────────
