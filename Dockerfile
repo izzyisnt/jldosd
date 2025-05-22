@@ -19,7 +19,6 @@ ENV PATH="/workspace/venv/bin:$PATH"
 # ───────── 4. Python venv + core wheels ─────────
 
 
-- name: Install Python dependencies
   run: |
     pip install --upgrade pip setuptools wheel
     pip install torch==2.2.2 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
