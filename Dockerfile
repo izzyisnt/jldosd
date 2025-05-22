@@ -54,6 +54,7 @@ RUN tar -xzf /workspace/SurfDock/comp_surface/tools/APBS_PDB2PQR.tar.gz -C /work
 # ─── Build & install MSMS into /workspace/bin ───
 # ---- MSMS -------------------------------------------------
 ARG MSMS_VER=2.6.1
+RUN apt-get update && apt-get install -y curl
 RUN curl -L -o /tmp/msms.tar.gz \
       https://ccsb.scripps.edu/msms/download/933/msms_i86_64Linux2_${MSMS_VER}.tar.gz && \
     mkdir -p /opt/msms && tar -C /opt/msms -xzf /tmp/msms.tar.gz && \
