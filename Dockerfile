@@ -52,15 +52,19 @@ RUN git clone --depth 1 https://github.com/facebookresearch/esm.git /workspace/S
 RUN tar -xzf /workspace/SurfDock/comp_surface/tools/APBS_PDB2PQR.tar.gz -C /workspace/SurfDock/comp_surface/tools
 
 # ─── Build & install MSMS into /workspace/bin ───
-RUN mkdir -p /workspace/bin && \
-    apt-get update && apt-get install -y curl && \
-    curl -fsSL http://mgltools.scripps.edu/downloads/tars/releases/MSMSRELEASE/REL2.6.1/msms_i86_64Linux2_2.6.1.tar.gz \
-      -o /tmp/msms.tgz && \
-    mkdir -p /tmp/msms && \
-    tar -xzf /tmp/msms.tgz -C /tmp/msms && \
-    install /tmp/msms/msms.x86_64Linux2.2.6.1 /workspace/bin/msms && \
-    chmod +x /workspace/bin/msms && \
-    rm -rf /tmp/msms /tmp/msms.tgz
+# ---- MSMS -------------------------------------------------
+ARG MSMS_VER=2.6.1
+RUN curl -L -o /tmp/msms.tar.gz \
+      https://ccsb.scripps.edu/msms/download/933/msms_i86_64Linux2_${MSMS_VER}.tar.gz && \
+    mkdir -p /opt/msms && tar -C /opt/msms -xzf /tmp/msms.tar.gz && \
+    ln -s /opt/msms/msms.x86_64Linux2.${MSMS_VER} /usr/local/bin/msms && \
+    ln -s /opt/msms/pdb_to_xyzr* /usr/local/bin/ && \
+    sed -i 's@numfile = "./atmtypenumbers"@numfile = "/opt/msms/atmtypenumbers"@' \
+          /opt/msms/pdb_to_xyzr /opt/msms/pdb_to_xyzrn && \
+    rm /tmp/msms.tar.gz
+
+
+
 
 # And at the top of your Dockerfile, make sure /workspace/bin is on PATH:
 ENV PATH="/workspace/bin:/workspace/venv/bin:${PATH}"
