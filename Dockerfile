@@ -21,6 +21,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         apbs pdb2pqr \
     && rm -rf /var/lib/apt/lists/*
 
+# Rundock needs file
+RUN apt-get update && apt-get install -y file \
+    && rm -rf /var/lib/apt/lists/*
+
 # ───────── 2. Python venv (in /usr/local) ─────────
 ENV VIRTUAL_ENV=/usr/local/venv
 RUN python3 -m venv $VIRTUAL_ENV && \
