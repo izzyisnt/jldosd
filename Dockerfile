@@ -24,9 +24,12 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # ───────── 3. Core wheels ─────────
 RUN pip install torch==2.2.2 torchvision torchaudio \
         --index-url https://download.pytorch.org/whl/cu121 && \
-    TORCH_VER=$(python - <<'PY'\nimport torch, os; print(torch.__version__)\nPY) && \
-    pip install torch-scatter torch-sparse torch-cluster torch-spline-conv \
-        -f https://data.pyg.org/whl/torch-${TORCH_VER}.html
+    TORCH_VER=$(python - <<'PY'
+import torch, os
+print(torch.__version__)
+PY
+) && \
+
 
 # ───────── 4. Python deps ─────────
 COPY requirements.txt /tmp/
