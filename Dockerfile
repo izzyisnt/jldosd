@@ -1,13 +1,3 @@
-docker run -it --entrypoint bash <image>
-``` |
-
----
-
-## Minimal viable “login box” example
-
-If you just need a CUDA-enabled playground while you iterate on the SurfDock bits:
-
-```dockerfile
 FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
