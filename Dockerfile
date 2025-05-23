@@ -6,6 +6,12 @@ ARG SURFDOCK_REF=master
 ARG MSMS_VER=2.6.1
 ENV DEBIAN_FRONTEND=noninteractive
 
+# ── copy + validate script first (cheap to rebuild) ──
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh \
+ && /docker-entrypoint.sh echo "__entrypoint_ok__"
+
+
 # ───────── 1. System packages ─────────
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git curl build-essential cmake \
@@ -56,13 +62,6 @@ RUN curl -L -o /tmp/msms.tar.gz \
 # ───────── 7. Runtime layout ─────────
 WORKDIR /workspace                          # RunPod mounts here
 
-# ─── 4. Copy & verify entrypoint ───
-# Make sure docker-entrypoint.sh is in your build context next to the Dockerfile
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh \
- && head -n1 /docker-entrypoint.sh    # sanity-check the shebang
-# (Optional) fail build if it’s not there:
-RUN test -f /docker-entrypoint.sh
 
 # ─── 5. Entrypoint & CMD ───
 ENTRYPOINT ["/docker-entrypoint.sh"]
