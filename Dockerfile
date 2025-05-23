@@ -55,8 +55,15 @@ RUN curl -L -o /tmp/msms.tar.gz \
 
 # ───────── 7. Runtime layout ─────────
 WORKDIR /workspace                          # RunPod mounts here
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+# ─── 4. Copy & verify entrypoint ───
+# Make sure docker-entrypoint.sh is in your build context next to the Dockerfile
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh \
+ && head -n1 /docker-entrypoint.sh    # sanity-check the shebang
+# (Optional) fail build if it’s not there:
+RUN test -f /docker-entrypoint.sh
+
+# ─── 5. Entrypoint & CMD ───
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["bash"]
