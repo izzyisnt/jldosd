@@ -2,7 +2,7 @@
 FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04
 
 ARG PYTHON_VERSION=3.10
-ARG SURFDOCK_REF=main
+ARG SURFDOCK_REF=master
 ARG MSMS_VER=2.6.1
 ENV DEBIAN_FRONTEND=noninteractive
 
