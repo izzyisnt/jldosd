@@ -1,77 +1,61 @@
-# ───────── 1. CUDA & Ubuntu base (RunPod-compatible) ─────────
+# syntax=docker/dockerfile:1.6
 FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04
 
+ARG PYTHON_VERSION=3.10
+ARG SURFDOCK_REF=main
+ARG MSMS_VER=2.6.1
 ENV DEBIAN_FRONTEND=noninteractive
 
-# ───────── 2. System packages ─────────
-RUN apt-get update && apt-get install -y \
-    git build-essential cmake vim tmux \
-    python3 python3-venv python3-dev python3-pip \
-    libeigen3-dev libboost-all-dev \
-    openbabel libopenbabel-dev \
-    apbs pdb2pqr \
- && rm -rf /var/lib/apt/lists/*
+# ───────── 1. System packages ─────────
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git curl build-essential cmake \
+        python${PYTHON_VERSION} python3-venv python3-dev python3-pip \
+        libeigen3-dev libboost-all-dev \
+        openbabel libopenbabel-dev \
+        apbs pdb2pqr \
+    && rm -rf /var/lib/apt/lists/*
 
-# ───────── 3. Workspace layout ─────────
-WORKDIR /workspace        # <- RunPod mounts your volume here
-ENV PATH="/workspace/venv/bin:$PATH"
+# ───────── 2. Python venv (in /usr/local) ─────────
+ENV VIRTUAL_ENV=/usr/local/venv
+RUN python3 -m venv $VIRTUAL_ENV && \
+    $VIRTUAL_ENV/bin/pip install --upgrade pip setuptools wheel
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# ───────── 4. Python venv + core wheels ─────────
+# ───────── 3. Core wheels ─────────
+RUN pip install torch==2.2.2 torchvision torchaudio \
+        --index-url https://download.pytorch.org/whl/cu121 && \
+    TORCH_VER=$(python - <<'PY'\nimport torch, os; print(torch.__version__)\nPY) && \
+    pip install torch-scatter torch-sparse torch-cluster torch-spline-conv \
+        -f https://data.pyg.org/whl/torch-${TORCH_VER}.html
 
+# ───────── 4. Python deps ─────────
+COPY requirements.txt /tmp/
+RUN pip install -r /tmp/requirements.txt && rm /tmp/requirements.txt
 
-RUN python3 -m venv /workspace/venv && \
-    /workspace/venv/bin/pip install --upgrade pip setuptools wheel && \
-    /workspace/venv/bin/pip install \
-      torch==2.2.2 torchvision torchaudio \
-      --index-url https://download.pytorch.org/whl/cu121 && \
-    TORCH_VER=$(/workspace/venv/bin/python -c "import torch; print(torch.__version__)") && \
-    /workspace/venv/bin/pip install \
-      torch-scatter torch-sparse torch-cluster torch-spline-conv \
-      -f https://data.pyg.org/whl/torch-${TORCH_VER}.html && \
-    /workspace/venv/bin/pip install \
-      numpy scipy pandas biopython prody spyrmsd rdkit-pypi \
-      tokenizers transformers huggingface-hub wandb e3nn \
-      scikit-learn accelerate prefetch_generator && \
-    /workspace/venv/bin/pip install \
-      git+https://github.com/durrantlab/dimorphite_dl
+# ───────── 5. SurfDock + ESM ─────────
+RUN git clone --depth 1 --branch $SURFDOCK_REF https://github.com/CAODH/SurfDock.git /usr/local/SurfDock && \
+    git clone --depth 1 https://github.com/facebookresearch/esm.git /usr/local/SurfDock/esm && \
+    pip install -e /usr/local/SurfDock/esm && \
+    tar -xzf /usr/local/SurfDock/comp_surface/tools/APBS_PDB2PQR.tar.gz \
+        -C /usr/local/SurfDock/comp_surface/tools && \
+    sed -i 's/^source .*activate.*//' /usr/local/SurfDock/bash_scripts/test_scripts/screen_pipeline.sh && \
+    chmod +x /usr/local/SurfDock/bash_scripts/test_scripts/screen_pipeline.sh
 
-
-
-# ───────── 5. Clone SurfDock and helpers ─────────
-RUN git clone https://github.com/CAODH/SurfDock.git /workspace/SurfDock
-
-# Facebook ESM (editable install)
-RUN git clone --depth 1 https://github.com/facebookresearch/esm.git /workspace/SurfDock/esm \
- && pip install -e /workspace/SurfDock/esm
-
-# Extract APBS / PDB2PQR bundle that SurfDock ships
-RUN tar -xzf /workspace/SurfDock/comp_surface/tools/APBS_PDB2PQR.tar.gz -C /workspace/SurfDock/comp_surface/tools
-
-# ─── Build & install MSMS into /workspace/bin ───
-# ---- MSMS -------------------------------------------------
-ARG MSMS_VER=2.6.1
-RUN apt-get update && apt-get install -y curl
+# ───────── 6. MSMS ─────────
 RUN curl -L -o /tmp/msms.tar.gz \
-      https://ccsb.scripps.edu/msms/download/933/msms_i86_64Linux2_${MSMS_VER}.tar.gz && \
-    mkdir -p /opt/msms && tar -C /opt/msms -xzf /tmp/msms.tar.gz && \
-    ln -s /opt/msms/msms.x86_64Linux2.${MSMS_VER} /usr/local/bin/msms && \
-    ln -s /opt/msms/pdb_to_xyzr* /usr/local/bin/ && \
-    sed -i 's@numfile = "./atmtypenumbers"@numfile = "/opt/msms/atmtypenumbers"@' \
-          /opt/msms/pdb_to_xyzr /opt/msms/pdb_to_xyzrn && \
+        https://ccsb.scripps.edu/msms/download/933/msms_i86_64Linux2_${MSMS_VER}.tar.gz && \
+    mkdir -p /usr/local/msms && \
+    tar -C /usr/local/msms -xzf /tmp/msms.tar.gz && \
+    ln -s /usr/local/msms/msms.x86_64Linux2.${MSMS_VER} /usr/local/bin/msms && \
+    ln -s /usr/local/msms/pdb_to_xyzr* /usr/local/bin/ && \
+    sed -i 's@numfile = "./atmtypenumbers"@numfile = "/usr/local/msms/atmtypenumbers"@' \
+        /usr/local/msms/pdb_to_xyzr /usr/local/msms/pdb_to_xyzrn && \
     rm /tmp/msms.tar.gz
 
+# ───────── 7. Runtime layout ─────────
+WORKDIR /workspace                          # RunPod mounts here
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-
-
-# And at the top of your Dockerfile, make sure /workspace/bin is on PATH:
-ENV PATH="/workspace/bin:/workspace/venv/bin:${PATH}"
-
-
-
-# ───────── 7. Patch hard-coded conda-activate line ─────────
-RUN sed -i 's/^source .*activate.*//' /workspace/SurfDock/bash_scripts/test_scripts/screen_pipeline.sh \
- && chmod +x /workspace/SurfDock/bash_scripts/test_scripts/screen_pipeline.sh
-
-# ───────── 8. Default to SurfDock directory & open shell ─────────
-WORKDIR /workspace/SurfDock
-ENTRYPOINT ["tail","-f","/dev/null"]
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["bash"]
