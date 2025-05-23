@@ -181,6 +181,4 @@ fixed_pdbs/*
 bash_scripts/*/*/*.out
 
 *result*
-
-
-
+!requirements.txt

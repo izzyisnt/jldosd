@@ -1,0 +1,16 @@
+numpy
+scipy
+pandas
+biopython
+prody
+spyrmsd
+rdkit-pypi
+tokenizers
+transformers
+huggingface-hub
+wandb
+e3nn
+scikit-learn
+accelerate
+prefetch_generator
+git+https://github.com/durrantlab/dimorphite_dl
