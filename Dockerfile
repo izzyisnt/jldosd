@@ -23,7 +23,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # ───────── 3. Core wheels ─────────
 RUN pip install torch==2.2.2 torchvision torchaudio \
-        --index-url https://download.pytorch.org/whl/cu121 &&
+        --index-url https://download.pytorch.org/whl/cu121
 
 ENV TORCH_VER=2.2.2
 RUN pip install torch==${TORCH_VER} torchvision torchaudio \
