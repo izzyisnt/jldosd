@@ -1,3 +1,8 @@
+# requirements.txt
+biopython==1.79
+MDAnalysis[analysis]
+plyfile
+
 numpy
 scipy
 pandas
@@ -12,5 +17,4 @@ wandb
 e3nn
 scikit-learn
 accelerate
-prefetch_generator
-git+https://github.com/durrantlab/dimorphite_dl
+prefetch_generator git+https://github.com/durrantlab/dimorphite_dl

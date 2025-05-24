@@ -65,14 +65,14 @@ RUN curl -L -o /tmp/msms.tar.gz \
         /usr/local/msms/pdb_to_xyzr /usr/local/msms/pdb_to_xyzrn && \
     rm /tmp/msms.tar.gz
 
-# ── 7. canonical SO(3)/torus grids ─────────────────────────────────────────────
+
+# ── canonical SO(3)/torus grids ──
 ENV precomputed_arrays=/usr/local/SurfDock/precomputed_arrays
 RUN mkdir -p $precomputed_arrays && cd $precomputed_arrays && \
-    # base-64 blobs from pastebin (exact DiffDock grids)
-    curl -sL https://pastebin.com/raw/YXtu3KGq | base64 -d > so3_grid_25.npy && \
-    curl -sL https://pastebin.com/raw/z5X1QnWU | base64 -d > torus_grid_25.npy && \
-    curl -sL https://pastebin.com/raw/1YGe0kUZ | base64 -d > index_map_25.npy && \
-    RUN python -c "import hashlib, glob; print('✓ grids SHA256:', [hashlib.sha256(open(f,'rb').read()).hexdigest() for f in glob.glob('/usr/local/SurfDock/precomputed_arrays/*.npy')])"
+    curl -sL "$PRECOMP_SO3_URL"   > so3_grid_25.npy && \
+    curl -sL "$PRECOMP_TORUS_URL" > torus_grid_25.npy && \
+    curl -sL "$PRECOMP_IDX_URL"   > index_map_25.npy
+
 
 # ── 8. runtime layout ──────────────────────────────────────────────────────────
 WORKDIR /workspace           # RunPod mounts here
