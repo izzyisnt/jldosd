@@ -74,10 +74,16 @@ WORKDIR /workspace           # RunPod mounts here
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 # keep-alive so Pod never exits; RunPod exec/web-shell attach fine
-CMD ["bash","-c","trap : TERM INT; sleep infinity & wait"]
+CMD ["tail","-f","/dev/null"]
+
+# ── 8. Runtime layout ──────────────────────────────────────────────────────────
+# RunPod mounts here
+WORKDIR /workspace
 
 # ── 9. Auto-venv activation + clean PS1 ────────────────────────────────────────
 RUN echo 'source /usr/local/venv/bin/activate' >> /etc/bash.bashrc && \
     echo 'export PS1="% "' >> /etc/bash.bashrc && \
-    cd /usr/local/SurfDock
+    echo 'alias surf="python /usr/local/SurfDock/inference_accelerate.py"' >> /etc/bash.bashrc && \
+    echo 'alias gosurf="cd /usr/local/SurfDock"' >> /etc/bash.bashrc && \
+    echo 'source /etc/bash.bashrc' >> /root/.bashrc
 
