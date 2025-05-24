@@ -27,6 +27,12 @@ RUN python3 -m venv $VIRTUAL_ENV && \
     $VIRTUAL_ENV/bin/pip install --upgrade pip setuptools wheel
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
+
+# ── 3. Python deps ─────────────────────────────────────
+
+RUN pip install --no-cache-dir \
+      git+https://github.com/openforcefield/openforcefield.git@v0.9.2
+
 # ── 3. heavy wheels (Torch + PyG CUDA ops) ─────────────────────────────────────
 # torch / torchvision wheels
 RUN pip install --no-cache-dir \
