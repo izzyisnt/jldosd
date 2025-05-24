@@ -1,9 +1,6 @@
 # requirements.txt
-biopython==1.79
 MDAnalysis[analysis]
 plyfile
-
-loguru
 
 numpy
 scipy
@@ -19,4 +16,18 @@ wandb
 e3nn
 scikit-learn
 accelerate
-prefetch-generator==1.0.3     # solves “No matching distribution” on Py-3.10
+
+# Core dependencies from environment.yaml (pip equivalents)
+openff-toolkit==0.15.2
+openff-interchange==0.3.25
+openff-forcefields==2024.3.0
+openff-units==0.2.2
+openff-utilities==0.1.12
+openff-models==0.1.2
+smirnoff99frosst==1.1.0
+
+# Required for forcefield and molecule handling
+openbabel==3.1.1
+loguru==0.7.2
+prefetch-generator==1.0.3
+biopython==1.79
