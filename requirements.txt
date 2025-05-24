@@ -17,4 +17,4 @@ wandb
 e3nn
 scikit-learn
 accelerate
-prefetch_generator @ git+https://github.com/durrantlab/dimorphite_dl
+prefetch-generator==1.0.3     # solves “No matching distribution” on Py-3.10

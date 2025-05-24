@@ -15,8 +15,8 @@ RUN chmod +x /docker-entrypoint.sh \
 # ── 1. system packages ─────────────────────────────────────────────────────────
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git curl wget file build-essential cmake \
-        python${PYTHON_VERSION} python3-venv python3-dev python3-pip \
-        libeigen3-dev libboost-all-dev \
+        python3.10 python3-venv python3-dev python3-pip \
+        libboost-all-dev=1.74.0.3ubuntu7 \
         openbabel libopenbabel-dev \
         apbs pdb2pqr \
     && rm -rf /var/lib/apt/lists/*
