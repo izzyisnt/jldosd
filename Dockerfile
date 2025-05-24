@@ -72,7 +72,7 @@ RUN mkdir -p $precomputed_arrays && cd $precomputed_arrays && \
     curl -sL https://pastebin.com/raw/YXtu3KGq | base64 -d > so3_grid_25.npy && \
     curl -sL https://pastebin.com/raw/z5X1QnWU | base64 -d > torus_grid_25.npy && \
     curl -sL https://pastebin.com/raw/1YGe0kUZ | base64 -d > index_map_25.npy && \
-    python - <<'PY' - $precomputed_arrays; import numpy as np, sys, os, pathlib, base64, hashlib, glob; print("✓ grids SHA256:", [hashlib.sha256(open(f,"rb").read()).hexdigest() for f in glob.glob(sys.argv[1]+"/*.npy")]); PY
+    RUN python -c "import hashlib, glob; print('✓ grids SHA256:', [hashlib.sha256(open(f,'rb').read()).hexdigest() for f in glob.glob('/usr/local/SurfDock/precomputed_arrays/*.npy')])"
 
 # ── 8. runtime layout ──────────────────────────────────────────────────────────
 WORKDIR /workspace           # RunPod mounts here
