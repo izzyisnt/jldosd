@@ -3,6 +3,8 @@ biopython==1.79
 MDAnalysis[analysis]
 plyfile
 
+loguru
+
 numpy
 scipy
 pandas
