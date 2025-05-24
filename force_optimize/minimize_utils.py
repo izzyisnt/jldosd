@@ -1,5 +1,8 @@
 import os
-from openff.toolkit import Molecule
+try:
+    from openff.toolkit import Molecule
+except ImportError:
+    from openforcefield.topology import Molecule
 from openmmforcefields.generators import SystemGenerator
 from openmm import unit, LangevinIntegrator
 from openmm.app import PDBFile, Simulation

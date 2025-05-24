@@ -29,7 +29,7 @@ accelerate
 
 #clean inference-only container, not running parameterization, SMIRNOFF typing, or simulation prep
 # Pinned to latest PyPI-available versions
-openff-toolkit==0.14.5
+openforcefield==0.9.2
 openff-units==0.2.2
 openff-utilities==0.1.12
 
