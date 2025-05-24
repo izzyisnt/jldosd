@@ -4,55 +4,57 @@ FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04
 ARG PYTHON_VERSION=3.10
 ARG SURFDOCK_REF=master
 ARG MSMS_VER=2.6.1
+ARG TORCH_VER=2.2.0          # ← pinned so PyG wheels exist
 ENV DEBIAN_FRONTEND=noninteractive
 
-# ── copy + validate script first (cheap to rebuild) ──
+# ── 0. entrypoint: copy early so cache is cheap ────────────────────────────────
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh \
  && /docker-entrypoint.sh echo "__entrypoint_ok__"
 
-
-# ───────── 1. System packages ─────────
+# ── 1. system packages ─────────────────────────────────────────────────────────
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        git curl build-essential cmake \
+        git curl wget file build-essential cmake \
         python${PYTHON_VERSION} python3-venv python3-dev python3-pip \
         libeigen3-dev libboost-all-dev \
         openbabel libopenbabel-dev \
         apbs pdb2pqr \
     && rm -rf /var/lib/apt/lists/*
 
-# Rundock needs file
-RUN apt-get update && apt-get install -y file \
-    && rm -rf /var/lib/apt/lists/*
-
-# ───────── 2. Python venv (in /usr/local) ─────────
+# ── 2. Python venv in /usr/local ───────────────────────────────────────────────
 ENV VIRTUAL_ENV=/usr/local/venv
 RUN python3 -m venv $VIRTUAL_ENV && \
     $VIRTUAL_ENV/bin/pip install --upgrade pip setuptools wheel
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# ───────── 3. Core wheels ─────────
-RUN pip install torch==2.2.2 torchvision torchaudio \
-        --index-url https://download.pytorch.org/whl/cu121
+# ── 3. heavy wheels (Torch + PyG CUDA ops) ─────────────────────────────────────
+# torch / torchvision wheels
+RUN pip install --no-cache-dir \
+      https://download.pytorch.org/whl/cu121/torch-${TORCH_VER}%2Bcu121-cp310-cp310-linux_x86_64.whl \
+      https://download.pytorch.org/whl/cu121/torchvision-0.17.0%2Bcu121-cp310-cp310-linux_x86_64.whl
 
-ENV TORCH_VER=2.2.2
-RUN pip install torch==${TORCH_VER} torchvision torchaudio \
-    --index-url https://download.pytorch.org/whl/cu121
+# PyTorch-Geometric low-level CUDA wheels + wrapper
+RUN pip install --no-cache-dir \
+      -f https://data.pyg.org/whl/torch-${TORCH_VER}%2Bcu121.html \
+      pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv && \
+    pip install --no-cache-dir torch_geometric
 
-# ───────── 4. Python deps ─────────
+# ── 4. light Python deps ───────────────────────────────────────────────────────
 COPY requirements.txt /tmp/
-RUN pip install -r /tmp/requirements.txt && rm /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt && rm /tmp/requirements.txt
+RUN pip install --no-cache-dir "MDAnalysis[analysis]" plyfile
 
-# ───────── 5. SurfDock + ESM ─────────
+# ── 5. SurfDock & ESM ──────────────────────────────────────────────────────────
 RUN git clone --depth 1 --branch $SURFDOCK_REF https://github.com/CAODH/SurfDock.git /usr/local/SurfDock && \
     git clone --depth 1 https://github.com/facebookresearch/esm.git /usr/local/SurfDock/esm && \
-    pip install -e /usr/local/SurfDock/esm && \
+    pip install --no-cache-dir -e /usr/local/SurfDock/esm && \
     tar -xzf /usr/local/SurfDock/comp_surface/tools/APBS_PDB2PQR.tar.gz \
         -C /usr/local/SurfDock/comp_surface/tools && \
-    sed -i 's/^source .*activate.*//' /usr/local/SurfDock/bash_scripts/test_scripts/screen_pipeline.sh && \
+    sed -i 's/^source .*activate.*//' \
+        /usr/local/SurfDock/bash_scripts/test_scripts/screen_pipeline.sh && \
     chmod +x /usr/local/SurfDock/bash_scripts/test_scripts/screen_pipeline.sh
 
-# ───────── 6. MSMS ─────────
+# ── 6. MSMS surface tools ─────────────────────────────────────────────────────
 RUN curl -L -o /tmp/msms.tar.gz \
         https://ccsb.scripps.edu/msms/download/933/msms_i86_64Linux2_${MSMS_VER}.tar.gz && \
     mkdir -p /usr/local/msms && \
@@ -63,10 +65,24 @@ RUN curl -L -o /tmp/msms.tar.gz \
         /usr/local/msms/pdb_to_xyzr /usr/local/msms/pdb_to_xyzrn && \
     rm /tmp/msms.tar.gz
 
-# ───────── 7. Runtime layout ─────────
-WORKDIR /workspace                          # RunPod mounts here
+# ── 7. canonical SO(3)/torus grids ─────────────────────────────────────────────
+ENV precomputed_arrays=/usr/local/SurfDock/precomputed_arrays
+RUN mkdir -p $precomputed_arrays && cd $precomputed_arrays && \
+    # base-64 blobs from pastebin (exact DiffDock grids)
+    curl -sL https://pastebin.com/raw/YXtu3KGq | base64 -d > so3_grid_25.npy && \
+    curl -sL https://pastebin.com/raw/z5X1QnWU | base64 -d > torus_grid_25.npy && \
+    curl -sL https://pastebin.com/raw/1YGe0kUZ | base64 -d > index_map_25.npy && \
+    python - <<'PY' - $precomputed_arrays; import numpy as np, sys, os, pathlib, base64, hashlib, glob; print("✓ grids SHA256:", [hashlib.sha256(open(f,"rb").read()).hexdigest() for f in glob.glob(sys.argv[1]+"/*.npy")]); PY
 
+# ── 8. runtime layout ──────────────────────────────────────────────────────────
+WORKDIR /workspace           # RunPod mounts here
 
-# ─── 5. Entrypoint & CMD ───
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["bash"]
+# keep-alive so Pod never exits; RunPod exec/web-shell attach fine
+CMD ["bash","-c","trap : TERM INT; sleep infinity & wait"]
+
+# ── 9. Auto-venv activation + clean PS1 ────────────────────────────────────────
+RUN echo 'source /usr/local/venv/bin/activate' >> /etc/bash.bashrc && \
+    echo 'export PS1="% "' >> /etc/bash.bashrc && \
+    cd /usr/local/SurfDock
+
