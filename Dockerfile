@@ -54,6 +54,9 @@ RUN git clone --depth 1 --branch $SURFDOCK_REF https://github.com/CAODH/SurfDock
         /usr/local/SurfDock/bash_scripts/test_scripts/screen_pipeline.sh && \
     chmod +x /usr/local/SurfDock/bash_scripts/test_scripts/screen_pipeline.sh
 
+COPY utils/make_grids.py /opt/make_grids.py
+RUN python /opt/make_grids.py /usr/local/SurfDock/precomputed_arrays
+
 # ── 6. MSMS surface tools ─────────────────────────────────────────────────────
 RUN curl -L -o /tmp/msms.tar.gz \
         https://ccsb.scripps.edu/msms/download/933/msms_i86_64Linux2_${MSMS_VER}.tar.gz && \
@@ -64,14 +67,6 @@ RUN curl -L -o /tmp/msms.tar.gz \
     sed -i 's@numfile = "./atmtypenumbers"@numfile = "/usr/local/msms/atmtypenumbers"@' \
         /usr/local/msms/pdb_to_xyzr /usr/local/msms/pdb_to_xyzrn && \
     rm /tmp/msms.tar.gz
-
-
-# ── canonical SO(3)/torus grids ──
-ENV precomputed_arrays=/usr/local/SurfDock/precomputed_arrays
-RUN mkdir -p $precomputed_arrays && cd $precomputed_arrays && \
-    curl -sL "$PRECOMP_SO3_URL"   > so3_grid_25.npy && \
-    curl -sL "$PRECOMP_TORUS_URL" > torus_grid_25.npy && \
-    curl -sL "$PRECOMP_IDX_URL"   > index_map_25.npy
 
 
 # ── 8. runtime layout ──────────────────────────────────────────────────────────
