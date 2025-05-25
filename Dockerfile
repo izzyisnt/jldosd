@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
 
 # ───────── 2. Clone code exactly as the README says ─────────
 WORKDIR /workspace
-RUN git clone --depth 1 --branch beta_v_0.03 \
+RUN git clone --depth 1 \
         https://github.com/CAODH/SurfDock.git
 
 # ───────── 3. Conda env (no more “-p” flag!) ─────────
