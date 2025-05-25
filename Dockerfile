@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV MAMBA_ROOT_PREFIX=/opt/conda
 RUN curl -Ls https://micromamba.snakepit.net/api/micromamba/linux-64/latest \
       | tar -xvj -C /usr/local/bin --strip-components=1 bin/micromamba && \
-    micromamba shell init -s bash -p $MAMBA_ROOT_PREFIX
+    micromamba shell init -s bash
 ENV PATH=$MAMBA_ROOT_PREFIX/bin:$PATH
 
 COPY environment.yaml /tmp/environment.yaml
