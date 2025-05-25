@@ -18,6 +18,7 @@ WORKDIR /workspace
 RUN git clone --depth 1 \
         https://github.com/CAODH/SurfDock.git
 
+
 # ───────── 3. Conda env (no more “-p” flag!) ─────────
 COPY environment.yaml /workspace/SurfDock/environment.yaml
 RUN micromamba create -n surfdock -f /workspace/SurfDock/environment.yaml \
