@@ -17,4 +17,4 @@ dependencies:
   - pip
   - pip:
       # we will install SurfDock from its Git tag inside the Dockerfile
-      - "git+https://github.com/CAODH/SurfDock.git@beta_v_0.03"
+      - "git+https://github.com/CAODH/SurfDock.git"
