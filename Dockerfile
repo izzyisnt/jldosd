@@ -20,8 +20,11 @@ RUN git clone --depth 1 \
 
 # ───────── 3. Conda env (no more “-p” flag!) ─────────
 COPY environment.yaml /workspace/SurfDock/environment.yaml
-RUN micromamba install -y -n surfdock -f /workspace/SurfDock/environment.yaml \
+RUN micromamba create -n surfdock -f /workspace/SurfDock/environment.yaml \
+ && micromamba install -y -n surfdock -f /workspace/SurfDock/environment.yaml \
  && micromamba clean --all --yes
+
+
 
 # ───────── 4. Build the SurfDock C++/CUDA extensions (README §3) ─────────
 WORKDIR /workspace/SurfDock
