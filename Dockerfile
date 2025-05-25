@@ -8,20 +8,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         apbs pdb2pqr \
         && rm -rf /var/lib/apt/lists/*
 
-# ── micromamba (tiny conda) ────────────────────────────────────────
+# ── Micromamba bootstrap ─────────────────────────────────────────
 ENV MAMBA_ROOT_PREFIX=/opt/conda
-RUN curl -L https://micromamba.snakepit.net/api/micromamba/linux-64/latest | \
-    tar -xvj -C /usr/local/bin --strip-components=1 bin/micromamba && \
-    micromamba shell init -s bash
+RUN curl -Ls https://micromamba.snakepit.net/api/micromamba/linux-64/latest \
+      | tar -xvj -C /usr/local/bin --strip-components=1 bin/micromamba && \
+    micromamba shell init -s bash -p $MAMBA_ROOT_PREFIX
 ENV PATH=$MAMBA_ROOT_PREFIX/bin:$PATH
 
-# copy env & create
 COPY environment.yaml /tmp/environment.yaml
-RUN micromamba install -y -n surfdock -f /tmp/environment.yaml && \
+
+# ⬇️  single create does the job
+RUN micromamba create -y -n surfdock -f /tmp/environment.yaml && \
     micromamba clean -a -y
 
-# activate conda env for every RUN after this line
+# activate for every subsequent RUN
 SHELL ["micromamba", "run", "-n", "surfdock", "/bin/bash", "-c"]
+
+
 
 # ── SurfDock + ESM ────────────────────────────────────────────────
 RUN git clone --depth 1 https://github.com/CAODH/SurfDock.git /usr/local/SurfDock && \
