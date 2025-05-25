@@ -27,10 +27,6 @@ RUN micromamba create -n surfdock -f /workspace/SurfDock/environment.yaml \
 
 
 
-# ───────── 4. Build the SurfDock C++/CUDA extensions (README §3) ─────────
-WORKDIR /workspace/SurfDock
-RUN /bin/bash -lc "python setup.py install"
-
 # ───────── 5. Default entry ─────────
 ENV PYTHONUNBUFFERED=1
 CMD ["bash"]
