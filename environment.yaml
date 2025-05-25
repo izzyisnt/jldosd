@@ -15,6 +15,3 @@ dependencies:
   - scipy
   - rdkit
   - pip
-  - pip:
-      # we will install SurfDock from its Git tag inside the Dockerfile
-      - "git+https://github.com/CAODH/SurfDock.git"
