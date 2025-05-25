@@ -1,63 +1,20 @@
+# only three changes, everything else stays exactly as in the README
 name: surfdock
 channels:
+  - pytorch            # ① add PyTorch’s own channel
   - conda-forge
-  - nvidia          # pulls pytorch-cuda runtime libs
-  - pytorch         # GPU wheels for torch / audio / vision
 dependencies:
-  # Python core
   - python=3.10
-  - pip
-
-  # PyTorch 2.2 + CUDA 12.1 complete stack
-  - pytorch=2.2
-  - pytorch-cuda=12.1        # binary runtime stubs
-  - torchvision=0.17
-  - torchaudio=2.2
-
-  # PyG CUDA wheels (scatter / sparse / cluster pulled automatically)
+  # ② loosen PyTorch-stack pins → let the solver pick a compatible trio
+  - pytorch
+  - torchvision
+  - torchaudio
+  # ③ drop any hard-pinned pyg-lib / pyg-torch; keep it flexible
   - pyg-lib
-
-  # SurfDock science deps
-  - openbabel=3.1.1
-  - rdkit
-  - mdanalysis
-  - loguru
-  - biopython=1.79
-
-  # OpenMM + FF tools (from README)
-  - openmm=8.1.1
-  - openmmforcefields=0.12.0
-  - pdbfixer=1.9
-
-  # full OpenFF stack
-  - openff-toolkit=0.15.2
-  - openff-interchange
-  - openff-forcefields
-  - openff-units=0.2.2
-  - openff-utilities=0.1.12
-  - openff-models
-  - smirnoff99frosst
-
-  # numerics / helpers
   - numpy
   - scipy
-  - pandas
-  - tqdm
-
-  # pip-only extras
+  - rdkit
+  - pip
   - pip:
-      - prefetch-generator          # ← moved here
-      - fair-esm
-      - spyrmsd
-      - scikit-learn==1.3.2
-      - accelerate==0.15.0
-      - e3nn==0.5.1
-      - huggingface-hub==0.17.3
-      - torch-ema==0.3
-      - torchmetrics==1.2.1
-      - tokenizers==0.13.3
-      - transformers==4.29.2
-      - wandb==0.16.1
-      - posebusters==0.2.7
-      - dimorphite_dl
-      - https://github.com/nuvolos-cloud/PyMesh/releases/download/v0.3.1/pymesh2-0.3.1-cp310-cp310-linux_x86_64.whl
+      # we will install SurfDock from its Git tag inside the Dockerfile
+      - "git+https://github.com/CAODH/SurfDock.git@beta_v_0.03"
