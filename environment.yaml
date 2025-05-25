@@ -1,28 +1,35 @@
 name: surfdock
 channels:
   - conda-forge
-  - nvidia
-  - pytorch
-  - pyg
+  - nvidia          # pulls pytorch-cuda runtime libs
+  - pytorch         # GPU wheels for torch / audio / vision
 dependencies:
-  # core
+  # Python core
   - python=3.10
   - pip
 
-  # CUDA PyTorch stack
-  - pytorch=2.2.*=*cuda12*
-  - torchvision=0.17.*=*cuda12*
-  - torchaudio=2.2.*=*cuda12*
+  # PyTorch 2.2 + CUDA 12.1 complete stack
+  - pytorch=2.2
+  - pytorch-cuda=12.1        # binary runtime stubs
+  - torchvision=0.17
+  - torchaudio=2.2
 
-  # PyG CUDA wheels (scatter/sparse/cluster pulled automatically)
+  # PyG CUDA wheels (scatter / sparse / cluster pulled automatically)
   - pyg-lib
 
-  # OpenMM & force-field tools (from README)
+  # SurfDock science deps
+  - openbabel=3.1.1
+  - rdkit
+  - mdanalysis
+  - loguru
+  - biopython=1.79
+
+  # OpenMM + FF tools (from README)
   - openmm=8.1.1
   - openmmforcefields=0.12.0
   - pdbfixer=1.9
 
-  # full OpenFF toolkit
+  # full OpenFF stack
   - openff-toolkit=0.15.2
   - openff-interchange
   - openff-forcefields
@@ -31,23 +38,16 @@ dependencies:
   - openff-models
   - smirnoff99frosst
 
-  # molecule / surface plumbing
-  - openbabel=3.1.1
-  - rdkit
-  - mdanalysis
-  - loguru
-  - prefetch-generator
-  - biopython=1.79
-
   # numerics / helpers
   - numpy
   - scipy
   - pandas
   - tqdm
 
-  # remaining pip-only packages
+  # pip-only extras
   - pip:
-      - fair-esm          # protein embeddings
+      - prefetch-generator          # ← moved here
+      - fair-esm
       - spyrmsd
       - scikit-learn==1.3.2
       - accelerate==0.15.0
@@ -60,5 +60,4 @@ dependencies:
       - wandb==0.16.1
       - posebusters==0.2.7
       - dimorphite_dl
-      # PyMesh 0.3.1 pre-built wheel
       - https://github.com/nuvolos-cloud/PyMesh/releases/download/v0.3.1/pymesh2-0.3.1-cp310-cp310-linux_x86_64.whl
